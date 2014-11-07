@@ -1,0 +1,9 @@
+---
+# This playbook deploys a slurm
+
+- hosts: slurm-controller
+  user: root
+
+  roles:
+    - slurm
+    - pyslurm
