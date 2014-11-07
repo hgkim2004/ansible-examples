@@ -1,0 +1,4 @@
+# Here are variables related to the Tomcat installation
+
+slurmd_port: 6818
+slurmctrld_port: 6817

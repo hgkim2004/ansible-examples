@@ -1,0 +1,70 @@
+---
+- name: Download EPEL Repo
+  get_url: url=http://mirror-fpt-telecom.fpt.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm dest=/tmp/epel-release-6-8.noarch.rpm
+
+- name: Install EPEL Repo
+  command: rpm -ivh /tmp/epel-release-6-8.noarch.rpm creates=/etc/yum.repos.d/epel.repo
+
+- name: Install packages (gcc, make, munge, munge-devel, bzip2, perl, ...)
+  yum: pkg={{item}} state=installed
+  with_items:
+    - gcc
+    - munge
+    - munge-devel
+    - munge-libs
+    - make
+    - bzip2
+    - perl
+#    - pam-devel
+
+- name: Copy munge.key
+  copy: src=munge.key dest=/etc/munge/ mode=0400 owner=munge group=munge
+
+- name: chkconfig --add munge
+  command: /sbin/chkconfig --add munge
+
+- name: Start munge daemon
+  service: name=munge state=started
+
+# http://stackoverflow.com/questions/22469880/how-can-i-check-the-file-existence-in-ansible
+- name: Check if the slurm-2.5.0
+  stat: path=/tmp/slurm-2.5.0
+  register: slurm_dir
+
+- name: get slurm tar.bz2
+  get_url: url=http://www.schedmd.com/download/archive/slurm-2.5.0.tar.bz2 dest=/tmp/slurm-2.5.0.tar.bz2
+  when: not slurm_dir.stat.exists
+
+- name: unzip slurm bz2 file
+  command: chdir=/tmp /usr/bin/bzip2 -d slurm-2.5.0.tar.bz2 creates=/tmp/slurm-2.5.0.tar
+
+- name: Extract archive
+  command: chdir=/tmp /bin/tar xvf /tmp/slurm-2.5.0.tar -C /tmp/ creates=/tmp/slurm-2.5.0
+
+- name: Run configure
+  command: chdir=/tmp/slurm-2.5.0 ./configure --prefix=/usr/local/slurm --sysconfdir=/etc/slurm-llnl --enable-debug creates=/tmp/slurm-2.5.0/Makefile
+
+- name: Run make
+  command: chdir=/tmp/slurm-2.5.0 /usr/bin/make creates=/tmp/slurm-2.5.0/src/slurmd/slurmd/slurmd
+
+- name: Install slurm to /usr/local/slurm
+  command: chdir=/tmp/slurm-2.5.0 /usr/bin/make install creates=/usr/local/slurm/sbin/slurmd
+
+- name: Install slurm conf
+  copy: src=slurm.conf dest=/etc/slurm-llnl/ mode=0755
+
+- name: Add slurm user
+  user: name=slurm
+
+- name: deploy iptables rules
+  template: src=iptables-save dest=/etc/sysconfig/iptables
+  notify: restart iptables
+
+- name: add slurm bin to path
+  lineinfile: dest=/etc/bashrc state=present insertbefore='# vim:ts=4:sw=4' line="export PATH=/usr/local/slurm/bin:$PATH"
+
+- name: add slurm library to library path
+  lineinfile: dest=/etc/ld.so.conf.d/slurm.conf create=yes line="/usr/local/slurm/lib"
+
+- name: Run ldconfig
+  command: /sbin/ldconfig
