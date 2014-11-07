@@ -14,12 +14,12 @@
   stat: path=/tmp/pyslurm
   register: pyslurm_dir
 
-- name: Install pyslurm (via git)
+- name: git clone pyslurm
   git: repo=git://github.com/gingergeeks/pyslurm dest=/tmp/pyslurm
   when: not pyslurm_dir.stat.exists
 
 - name: Build pyslurm
   command: chdir=/tmp/pyslurm /usr/bin/python setup.py build --slurm=/usr/local/slurm creates=/tmp/pyslurm/build
 
-- name: Build pyslurm
+- name: install pyslurm
   command: chdir=/tmp/pyslurm /usr/bin/python setup.py install creates=/usr/lib64/python2.6/site-packages/pyslurm

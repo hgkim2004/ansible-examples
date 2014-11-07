@@ -1,8 +1,0 @@
----
-# This playbook deploys a slurm
-
-- hosts: worker
-  user: root
-
-  roles:
-    - slurm

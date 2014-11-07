@@ -31,6 +31,8 @@
   stat: path=/tmp/slurm-2.5.0
   register: slurm_dir
 
+- debug: msg="{{slurm_dir}}"
+
 - name: get slurm tar.bz2
   get_url: url=http://www.schedmd.com/download/archive/slurm-2.5.0.tar.bz2 dest=/tmp/slurm-2.5.0.tar.bz2
   when: not slurm_dir.stat.exists
