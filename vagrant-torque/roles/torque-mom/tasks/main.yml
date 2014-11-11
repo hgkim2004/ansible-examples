@@ -1,0 +1,12 @@
+---
+- name: torque-mom torque-client
+  yum: pkg={{item}} state=installed
+  with_items:
+    - torque-mom
+    - torque-client
+
+- name: config pbs_mom
+  template: src=config dest=/var/lib/torque/mom_priv/
+
+- name: Start pbs_mom
+  service: name=pbs_mom state=restarted enabled=yes

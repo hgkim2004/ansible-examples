@@ -1,0 +1,54 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+slurm_cluster = {
+    :controller => {
+        :hostname => "controller",
+        :ipaddress => "192.168.236.10"
+    },
+    :worker1 => {
+        :hostname => "worker1",
+        :ipaddress => "192.168.236.11"
+    }
+}
+
+##Provisioning inline script
+$script = <<SCRIPT
+yum install -y nfs-utils
+echo "192.168.236.10    controller  controller" >> /etc/hosts
+echo "192.168.236.11    worker1 worker1" >> /etc/hosts
+service iptables stop
+chkconfig --del iptables
+mkdir /EDISON
+SCRIPT
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |global_config|
+  slurm_cluster.each_pair do |name, options|
+    global_config.vm.define name do |config|
+
+      config.vm.box = "centos6m"
+      config.vm.hostname = "#{name}"
+      config.vm.network :private_network, ip: options[:ipaddress]
+
+      #VM provisioning
+      config.vm.provision :shell,
+          :inline => $script
+
+      config.vm.provider :virtualbox do |v|
+          v.customize ["modifyvm", :id, "--cpus", "2"]
+          v.customize ["modifyvm", :id, "--memory", "1024"]
+      end
+
+      config.vm.provision "ansible" do |ansible|
+          if "#{name}" == "controller"
+              ansible.playbook = "controller.yml"
+          end
+          if "#{name}" == "worker1"
+              ansible.playbook = "worker1.yml"
+          end
+      end
+    end
+  end
+end
