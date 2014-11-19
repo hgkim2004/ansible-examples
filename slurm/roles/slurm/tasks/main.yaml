@@ -17,8 +17,11 @@
     - perl
 #    - pam-devel
 
-- name: Copy munge.key
-  copy: src=munge.key dest=/etc/munge/ mode=0400 owner=munge group=munge
+#- name: Copy munge.key
+#  copy: src=munge.key dest=/etc/munge/ mode=0400 owner=munge group=munge
+
+- name: create munge.key
+  command: /usr/sbin/create-munge-key -f
 
 - name: chkconfig --add munge
   command: /sbin/chkconfig --add munge

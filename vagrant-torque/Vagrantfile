@@ -27,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |global_config|
   slurm_cluster.each_pair do |name, options|
     global_config.vm.define name do |config|
 
-      config.vm.box = "centos6m"
+      config.vm.box = "centos66"
       config.vm.hostname = "#{name}"
       config.vm.network :private_network, ip: options[:ipaddress]
 
