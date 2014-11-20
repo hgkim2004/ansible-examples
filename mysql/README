@@ -1,0 +1,13 @@
+ansible-galaxy install geerlingguy.mysql geerlingguy.php
+
+ansible-playbook lamp.yml -i hosts
+
+Ansible role to install SLURM LRMS with checkpointing (BLCR)
+https://galaxy.ansible.com/list#/roles/1027
+
+
+Host 'xxx.xx.xxx.xxx' is not allowed to connect to this MySQL
+http://stackoverflow.com/questions/1559955/host-xxx-xx-xxx-xxx-is-not-allowed-to-connect-to-this-mysql-server
+
+Access denied for user * using password: YES
+http://wickedmagic.tistory.com/m/post/323
